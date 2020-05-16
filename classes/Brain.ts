@@ -13,10 +13,7 @@ export default class Brain {
   mutateConnectionStrengths () {
     this.allNeurons.forEach(neuron => {
       neuron.connections.forEach(connection => {
-        const strengthChange = (Math.random() > .5 ? 1 : -1)*(Math.random()*config.CONNECTION_MUTATION_THRESHOLD)
-        connection.strengthPercent += strengthChange
-        if (connection.strengthPercent > 1) connection.strengthPercent = 1
-        if (connection.strengthPercent < 0) connection.strengthPercent = 0
+        connection.mutate()
         console.log('new connection strength: ', connection.strengthPercent)
       })
     })
