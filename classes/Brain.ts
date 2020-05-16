@@ -42,7 +42,7 @@ export default class Brain {
 
   processNeurons () {
     while (this.neuronsToProcess.length) {
-      const neuronToProcess = this.neuronsToProcess.pop()
+      const neuronToProcess = this.neuronsToProcess.shift()
       // console.log(`Processing neuron "${neuronToProcess.id}"...`)
       if (neuronToProcess.chargePercent >= 1) {
         this.neuronsToProcess.push(...neuronToProcess.fire())

@@ -16,7 +16,6 @@ export default class Neuron {
 
   charge (chargePercent: number) {
     this.chargePercent += chargePercent
-    if (this.chargePercent < 0) this.chargePercent = 0
   }
 
   connectTo (neuron: Neuron, strengthPercent?: number) {
