@@ -39,9 +39,7 @@ export default class Trainer {
   }
 
   mutateBrains (times: number = 1) {
-    for (let i = 0; i < times; i++) {
-      this.brains.forEach(brain => brain.mutate())
-    }
+    this.brains.forEach(brain => brain.mutate(times))
   }
 
   printAllBrainDetails () {
@@ -53,8 +51,4 @@ export default class Trainer {
   resetBrains () {
     this.brains.forEach(brain => brain.reset())
   }
-
-  // sendInput (input: boolean[]) {
-  //   this.brains.forEach(brain => brain.processInput(input))
-  // }
 }

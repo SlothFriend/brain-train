@@ -19,15 +19,17 @@ export default class Brain {
     return this.outputNeurons.map(n => n.fireCount)
   }
 
-  mutate () {
-    this.mutateConnectionStrengths()
-    this.generation++
+  mutate (times: number = 1) {
+    this.mutateConnectionStrengths(times)
+    this.generation += times
   }
 
-  mutateConnectionStrengths () {
+  mutateConnectionStrengths (times: number = 1) {
     this.allNeurons.forEach(neuron => {
       neuron.connections.forEach(connection => {
-        connection.mutate()
+        for (let i = 0; i < times; i++) {
+          connection.mutate()
+        }
       })
     })
   }

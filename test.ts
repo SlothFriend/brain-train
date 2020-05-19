@@ -1,7 +1,7 @@
-import ANDBrain, { scoreFn } from './brains/ANDBrain'
+import ANDBrain from './brains/ANDBrain'
 import Trainer from './classes/Trainer'
 
-const trainer = new Trainer(scoreFn, [
+const trainer = new Trainer(ANDBrain.scoreFn, [
   new ANDBrain(),
   new ANDBrain(),
   new ANDBrain(),
@@ -12,7 +12,7 @@ let cycle = 0
 while (bestScore < 4) {
   console.log('Cycle:', cycle++)
 
-  trainer.mutateBrains()
+  trainer.mutateBrains(50)
   const scores = trainer.cull()
   bestScore = Math.max(bestScore, ...scores)
 }
