@@ -1,5 +1,3 @@
-import { v4 as uuid } from 'uuid'
-
 import Connection from './Connection'
 
 export default class Neuron {
@@ -7,12 +5,6 @@ export default class Neuron {
   public chargePercent: number = 0
   public connections: Connection[] = []
   public fireCount: number = 0
-  public id: string
-
-  constructor (
-  ) {
-    this.id = uuid()
-  }
 
   charge (chargePercent: number) {
     this.chargePercent += chargePercent
