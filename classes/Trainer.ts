@@ -14,9 +14,9 @@ export default class Trainer {
     const scores = this.getScores()
     console.log('scores:', scores)
 
-    const idsWithScores = scores.map((score, i) => ({ id: this.brains[i].id, score }))
+    const idsWithScores = scores.map((score, i) => ({ id: this.brains[i].id, score, generation: this.brains[i].generation }))
     idsWithScores.sort((a, b) => a.score > b.score ? -1 : 1) // Sorted by best first
-    console.log('sorted brains by score: ', idsWithScores.map(({ id, score }) => ({ id, score })))
+    console.log('sorted brains by score: ', idsWithScores)
 
     // Get the bottom third
     const toReplace = idsWithScores.slice(idsWithScores.length-Math.round(idsWithScores.length/3))
