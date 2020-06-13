@@ -20,18 +20,10 @@ export default class Brain {
   }
 
   mutate (times: number = 1) {
-    this.mutateConnectionStrengths(times)
+    // Mutate neurons
+    this.allNeurons.forEach(neuron => { neuron.mutate() })
+    // Update generation
     this.generation += times
-  }
-
-  mutateConnectionStrengths (times: number = 1) {
-    this.allNeurons.forEach(neuron => {
-      neuron.connections.forEach(connection => {
-        for (let i = 0; i < times; i++) {
-          connection.mutate()
-        }
-      })
-    })
   }
 
   printDetails () {

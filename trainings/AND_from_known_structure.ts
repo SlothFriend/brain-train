@@ -5,14 +5,18 @@ const trainer = new Trainer(ANDBrain.scoreFn, [
   new ANDBrain(),
   new ANDBrain(),
   new ANDBrain(),
+  new ANDBrain(),
+  new ANDBrain(),
 ])
 
 let bestScore = 0
 let cycle = 0
 while (bestScore < 4) {
-  console.log('Cycle:', cycle++)
+  const GENERATION_JUMP = 20
+  console.log(`Cycle: ${cycle}; Total Gens: ${cycle * GENERATION_JUMP}`)
+  cycle++
 
-  trainer.mutateBrains(20)
+  trainer.mutateBrains(GENERATION_JUMP)
   const scores = trainer.cull()
   bestScore = Math.max(bestScore, ...scores)
 }

@@ -8,8 +8,10 @@ export default class Connection {
     public strengthPercent: number = config.DEFAULT_CONNECTION_STRENGTH
   ) {}
 
-  mutate () {
-    const strengthChange = (Math.random() > .5 ? 1 : -1)*(Math.random()*config.CONNECTION_MUTATION_THRESHOLD)
-    this.strengthPercent += strengthChange
+  mutate (times: number = 1) {
+    for (let i = 0; i < times; i++) {
+      const strengthChange = (Math.random() > .5 ? 1 : -1) * (Math.random() * config.CONNECTION_MUTATION_THRESHOLD)
+      this.strengthPercent += strengthChange
+    }
   }
 }

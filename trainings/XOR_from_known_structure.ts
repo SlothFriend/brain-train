@@ -11,9 +11,11 @@ const trainer = new Trainer(XORBrain.scoreFn, [
 let bestScore = 0
 let cycle = 0
 while (bestScore < 4) {
-  console.log('Cycle:', cycle++)
+  const GENERATION_JUMP = 200
+  console.log(`Cycle: ${cycle}; Total Gens: ${cycle * GENERATION_JUMP}`)
+  cycle++
 
-  trainer.mutateBrains(200)
+  trainer.mutateBrains(GENERATION_JUMP)
   const scores = trainer.cull()
   bestScore = Math.max(bestScore, ...scores)
 }

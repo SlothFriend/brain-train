@@ -27,6 +27,10 @@ export default class Neuron {
     return this.connections.map(c => c.neuron)
   }
 
+  mutate (times: number = 1) {
+    this.connections.forEach(connection => { connection.mutate(times) })
+  }
+
   reset () {
     this.chargePercent = 0
     this.fireCount = 0
