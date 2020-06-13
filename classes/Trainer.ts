@@ -8,6 +8,7 @@ export default class Trainer {
     public brains?: Brain[]
   ) {}
 
+  // TODO: Add news brains as copies of best performing brain instead of blank slate
   // Keep the higher-scoring brains, replace the lower-scoring
   cull (): number[] {
     // Lower third gets replaced

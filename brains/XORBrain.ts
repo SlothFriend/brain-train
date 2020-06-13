@@ -18,6 +18,8 @@ export default class XORBrain extends Brain {
     const inputNeurons = [input1, input2]
     const outputNeurons = [output]
     super(allNeurons, inputNeurons, outputNeurons)
+
+    this.maxNeuronFireCount = 1000
   }
 
   static scoreFn: BrainScoreFn = (brain: XORBrain): number => {
@@ -25,23 +27,39 @@ export default class XORBrain extends Brain {
 
     // 0, 0 = 0
     brain.reset()
-    const [val1] = brain.processInput([false, false])
-    if (val1 === 0) score++
+    try {
+      const [val1] = brain.processInput([false, false])
+      if (val1 === 0) score++
+    } catch (e) {
+      console.log('Score attempt failed:', e)
+    }
 
     // 0, 1 = 0
     brain.reset()
-    const [val2] = brain.processInput([false, true])
-    if (val2 === 1) score++
+    try {
+      const [val2] = brain.processInput([false, true])
+      if (val2 === 1) score++
+    } catch (e) {
+      console.log('Score attempt failed:', e)
+    }
 
     // 1, 0 = 0
     brain.reset()
-    const [val3] = brain.processInput([true, false])
-    if (val3 === 1) score++
+    try {
+      const [val3] = brain.processInput([true, false])
+      if (val3 === 1) score++
+    } catch (e) {
+      console.log('Score attempt failed:', e)
+    }
 
     // 1, 1 = 1
     brain.reset()
-    const [val4] = brain.processInput([true, true])
-    if (val4 === 0) score++
+    try {
+      const [val4] = brain.processInput([true, true])
+      if (val4 === 0) score++
+    } catch (e) {
+      console.log('Score attempt failed:', e)
+    }
 
     return score
   }

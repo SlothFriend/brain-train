@@ -11,11 +11,16 @@ export default class Neuron {
   }
 
   connectTo (neuron: Neuron, strengthPercent?: number) {
-    this.connections.push(new Connection(neuron, strengthPercent))
+    // Add the connection if it's not already a connection
+    if (!this.connections.map(c => c.neuron).includes(neuron)) {
+      this.connections.push(new Connection(neuron, strengthPercent))
+    }
   }
 
   // Transfers charge to connections and returns connections for further processing
-  fire (): Neuron[] {
+  fire (maxFireCount?: number): Neuron[] {
+    if (maxFireCount && this.fireCount > maxFireCount) throw Error('Max fire count reached.')
+
     while (this.chargePercent >= 1) {
       this.connections.forEach(({ neuron: connectedNeuron, strengthPercent }) => {
         connectedNeuron.charge(strengthPercent)
