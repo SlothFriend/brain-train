@@ -18,8 +18,6 @@ export default class XORBrain extends Brain {
     const inputNeurons = [input1, input2]
     const outputNeurons = [output]
     super(allNeurons, inputNeurons, outputNeurons)
-
-    this.maxNeuronFireCount = 1000
   }
 
   static scoreFn: BrainScoreFn = (brain: XORBrain): number => {

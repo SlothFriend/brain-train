@@ -9,7 +9,7 @@ import Neuron from './Neuron'
 export default class Brain {
   public generation: number = 0
   public id: string
-  public maxNeuronFireCount?: number
+  public maxNeuronFireCount: number = 1000
   public neuronsToProcess: Neuron[] = []
 
   constructor(
