@@ -13,15 +13,15 @@ export default class Brain {
   public neuronsToProcess: Neuron[] = []
 
   constructor(
-    public allNeurons: Neuron[],
-    public inputNeurons: Neuron[],
-    public outputNeurons: Neuron[]
+    public allNeurons: Neuron[] = [],
+    public inputNeurons: Neuron[] = [],
+    public outputNeurons: Neuron[] = [],
   ) {
     this.id = uuid()
   }
 
   // Note: This may not add a connection if the neuron selected to form a new connection is already maximally connected
-  addConnection () {
+  addRandomConnection () {
     // Pick a non-output neuron to connect to a different non-input neuron
     const nonOutputNeuron = _sample(_difference(this.allNeurons, this.outputNeurons))
     const otherNonInputNonConnectedNeuron = _sample(_difference(
@@ -35,7 +35,7 @@ export default class Brain {
     }
   }
 
-  addNeuron () {
+  addRandomNeuron () {
     // Make the new neuron's input a non-output neuron and its output a non-input neuron
     const n = new Neuron()
     const nonOutputNeuron = _sample(_difference(this.allNeurons, this.outputNeurons))
@@ -43,6 +43,34 @@ export default class Brain {
     nonOutputNeuron.connectTo(n)
     n.connectTo(nonInputNeuron)
     this.allNeurons.push(n)
+  }
+
+  copy (): Brain {
+    // Create a new array with all new neurons, no connections
+    const newAllNeurons = this.allNeurons.map(() => new Neuron())
+
+    newAllNeurons.forEach((newNeuron, i) => {
+      // Fill out the new neuron's connections based on the existing neuron's (by index order)
+      const originalNeuron = this.allNeurons[i]
+      originalNeuron.connections.forEach(originalConnection => {
+        const index = this.allNeurons.indexOf(originalConnection.neuron)
+        newNeuron.connectTo(newAllNeurons[index], originalConnection.strengthPercent)
+      })
+    })
+
+    // Add to input and output lists by correlated lookup
+    const newInputNeurons = this.inputNeurons.map(originalInputNeuron => {
+      const index = this.allNeurons.indexOf(originalInputNeuron)
+      return newAllNeurons[index]
+    })
+    const newOutputNeurons = this.outputNeurons.map(originalOutputNeuron => {
+      const index = this.allNeurons.indexOf(originalOutputNeuron)
+      return newAllNeurons[index]
+    })
+
+    const newBrain = new (this.constructor as typeof Brain)(newAllNeurons, newInputNeurons, newOutputNeurons)
+    newBrain.generation = this.generation
+    return newBrain
   }
 
   getOutput (): number[] {
@@ -68,9 +96,9 @@ export default class Brain {
       // If we should mutate a connection
       if (Math.random() < config.CONNECTION_ADD_SUB_CHANCE) {
         if (Math.random() < config.CONNECTION_ADD_SUB_CHANCE_TO_ADD) {
-          this.addConnection()
+          this.addRandomConnection()
         } else {
-          this.removeConnection()
+          this.removeRandomConnection()
         }
       }
     })
@@ -81,9 +109,9 @@ export default class Brain {
       // If we should add/sum a neuron
       if (Math.random() < config.NEURON_ADD_SUB_CHANCE) {
         if (Math.random() < config.NEURON_ADD_SUB_CHANCE_TO_ADD) {
-          this.addNeuron()
+          this.addRandomNeuron()
         } else {
-          this.removeNeuron()
+          this.removeRandomNeuron()
         }
       }
     })
@@ -126,15 +154,14 @@ export default class Brain {
     }
   }
 
-  // Kill a random connection
-  removeConnection () {
+  removeRandomConnection () {
     // Pick a non-output neuron (they don't have connections)
     const nonOutputNeuron = _sample(_difference(this.allNeurons, this.outputNeurons))
     const connectionToRemove = _sample(nonOutputNeuron.connections)
     _remove(nonOutputNeuron.connections, c => c === connectionToRemove)
   }
 
-  removeNeuron () {
+  removeRandomNeuron () {
     // Pick a non-input, non-output neuron to remove
     const neuronToRemove = _sample(_difference(this.allNeurons, this.inputNeurons, this.outputNeurons))
     if (neuronToRemove) {

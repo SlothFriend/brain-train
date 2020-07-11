@@ -2,18 +2,25 @@ import { Brain, Neuron } from '../classes'
 import { BrainScoreFn } from '../classes/Trainer'
 
 export default class ANDBrain extends Brain {
-  constructor() {
-    const input1 = new Neuron()
-    const input2 = new Neuron()
-    const output = new Neuron()
-
-    input1.connectTo(output)
-    input2.connectTo(output)
-
-    const allNeurons = [input1, input2, output]
-    const inputNeurons = [input1, input2]
-    const outputNeurons = [output]
+  constructor(
+    public allNeurons: Neuron[] = [],
+    public inputNeurons: Neuron[] = [],
+    public outputNeurons: Neuron[] = [],
+  ) {
     super(allNeurons, inputNeurons, outputNeurons)
+
+    if (!this.allNeurons.length) {
+      const input1 = new Neuron()
+      const input2 = new Neuron()
+      const output = new Neuron()
+
+      input1.connectTo(output)
+      input2.connectTo(output)
+
+      this.allNeurons = [input1, input2, output]
+      this.inputNeurons = [input1, input2]
+      this.outputNeurons = [output]
+    }
   }
 
   static scoreFn: BrainScoreFn = (brain: ANDBrain): number => {

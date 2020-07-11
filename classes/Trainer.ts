@@ -1,3 +1,4 @@
+import _sample from 'lodash/sample'
 import Brain from './Brain'
 
 export type BrainScoreFn = (brain: Brain) => number
@@ -8,7 +9,6 @@ export default class Trainer {
     public brains?: Brain[]
   ) {}
 
-  // TODO: Add news brains as copies of best performing brain instead of blank slate
   // Keep the higher-scoring brains, replace the lower-scoring
   cull (): number[] {
     // Lower third gets replaced
@@ -19,11 +19,19 @@ export default class Trainer {
     idsWithScores.sort((a, b) => a.score > b.score ? -1 : 1) // Sorted by best first
     console.log('sorted brains by score: ', idsWithScores)
 
+    const topScore = idsWithScores[0].score
+    // Get the top third that have the top score
+    const topScoringBrains = idsWithScores
+      .slice(0, Math.round(idsWithScores.length / 3))
+      .filter(x => x.score === topScore)
+      .map(({ id }) => this.brains.find(b => b.id === id))
+
     // Get the bottom third
-    const toReplace = idsWithScores.slice(idsWithScores.length-Math.round(idsWithScores.length/3))
+    const toReplace = idsWithScores.slice(idsWithScores.length - Math.round(idsWithScores.length / 3))
     toReplace.forEach(({ id }) => {
       const index = this.brains.findIndex(b => b.id === id)
-      this.brains[index] = new (this.brains[index] as any).constructor()
+      // Replace the brain with a copy of one of the best scoring brains
+      this.brains[index] = _sample(topScoringBrains).copy()
     })
 
     // Log best performing brain

@@ -2,22 +2,29 @@ import { Brain, Neuron } from '../classes'
 import { BrainScoreFn } from '../classes/Trainer'
 
 export default class XORBrain extends Brain {
-  constructor() {
-    const input1 = new Neuron()
-    const input2 = new Neuron()
-    const n1 = new Neuron()
-    const output = new Neuron()
-
-    input1.connectTo(n1)
-    input1.connectTo(output)
-    input2.connectTo(n1)
-    input2.connectTo(output)
-    n1.connectTo(output)
-
-    const allNeurons = [input1, input2, n1, output]
-    const inputNeurons = [input1, input2]
-    const outputNeurons = [output]
+  constructor(
+    public allNeurons: Neuron[] = [],
+    public inputNeurons: Neuron[] = [],
+    public outputNeurons: Neuron[] = [],
+  ) {
     super(allNeurons, inputNeurons, outputNeurons)
+
+    if (!this.allNeurons.length) {
+      const input1 = new Neuron()
+      const input2 = new Neuron()
+      const n1 = new Neuron()
+      const output = new Neuron()
+
+      input1.connectTo(n1)
+      input1.connectTo(output)
+      input2.connectTo(n1)
+      input2.connectTo(output)
+      n1.connectTo(output)
+
+      this.allNeurons = [input1, input2, n1, output]
+      this.inputNeurons = [input1, input2]
+      this.outputNeurons = [output]
+    }
   }
 
   static scoreFn: BrainScoreFn = (brain: XORBrain): number => {
