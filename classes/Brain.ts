@@ -181,7 +181,7 @@ export default class Brain {
     }
 
     input.forEach((val, i) => {
-      if (val) {
+      if (val === true) {
         this.inputNeurons[i].charge(1)
         this.#neuronsToProcess.push(this.inputNeurons[i])
       }
