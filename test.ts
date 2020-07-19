@@ -1,4 +1,4 @@
-import { digitToHalfByte } from './utils/inputConversions'
+import { digitToHalfByte } from './utils/conversions'
 
 console.log('0 is', digitToHalfByte(0))
 console.log('1 is', digitToHalfByte(1))

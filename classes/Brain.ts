@@ -10,7 +10,7 @@ export default class Brain {
   public generation: number = 0
   public id: string
 
-  #maxNeuronFireCount: number = 1000
+  #maxNeuronFireCount: number = 10
   #neuronsToProcess: Neuron[] = []
 
   constructor(
@@ -62,8 +62,11 @@ export default class Brain {
     this.allNeurons.push(n)
   }
 
-  private getOutput (): number[] {
-    return this.outputNeurons.map(n => n.fireCount)
+  /**
+   * Returns a boolean array of whether each output neuron fired
+   */
+  private getOutput (): boolean[] {
+    return this.outputNeurons.map(n => n.fireCount > 0)
   }
 
   private mutateConnections (times: number = 1) {
@@ -169,13 +172,18 @@ export default class Brain {
   }
 
   printDetails () {
-    const connectionStregths = this.allNeurons.map(n => n.connections.map(c => c.strengthPercent)).flat()
-    const conStrengthsString = connectionStregths.map((s: number) => `\n${s.toFixed(4)}`)
-    console.log(`Brain ID: ${this.id}\nGeneration: ${this.generation}\nConnection Strengths: ${conStrengthsString}`)
+    const neuronCount = this.allNeurons.length
+    const connectionCount = this.allNeurons.reduce((total, neuron) => {
+      return total + neuron.connections.length
+    }, 0)
+    console.log(`Brain ID: ${this.id}\nGeneration: ${this.generation}\nNeuron Count: ${neuronCount}\nConnection Count: ${connectionCount}`)
     console.log()
   }
 
-  processInput (input: boolean[]): number[] {
+  /**
+   * Takes input for each input neuron and returns output for each output neuron
+   */
+  processInput (input: boolean[]): boolean[] {
     if (input.length !== this.inputNeurons.length) {
       throw Error('Invalid Input: Input length must be same size as input neuron list')
     }

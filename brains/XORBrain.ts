@@ -34,7 +34,7 @@ export default class XORBrain extends Brain {
     brain.reset()
     try {
       const [val1] = brain.processInput([false, false])
-      if (val1 === 0) score++
+      if (!val1) score++
     } catch (e) {
       console.log('Score attempt failed:', e)
     }
@@ -43,7 +43,7 @@ export default class XORBrain extends Brain {
     brain.reset()
     try {
       const [val2] = brain.processInput([false, true])
-      if (val2 === 1) score++
+      if (val2) score++
     } catch (e) {
       console.log('Score attempt failed:', e)
     }
@@ -52,7 +52,7 @@ export default class XORBrain extends Brain {
     brain.reset()
     try {
       const [val3] = brain.processInput([true, false])
-      if (val3 === 1) score++
+      if (val3) score++
     } catch (e) {
       console.log('Score attempt failed:', e)
     }
@@ -61,7 +61,7 @@ export default class XORBrain extends Brain {
     brain.reset()
     try {
       const [val4] = brain.processInput([true, true])
-      if (val4 === 0) score++
+      if (!val4) score++
     } catch (e) {
       console.log('Score attempt failed:', e)
     }

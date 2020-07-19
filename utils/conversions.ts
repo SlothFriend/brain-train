@@ -13,3 +13,8 @@ export const digitToHalfByte = (n: number): boolean[] => {
 
   return str.split('').map(s => s === '1')
 }
+
+export const halfByteToDigit = (nibble: boolean[]): number => {
+  const str = nibble.map(x => x ? '1' : '0').join('')
+  return parseInt(str, 2)
+}

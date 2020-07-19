@@ -15,9 +15,16 @@ export default class Trainer {
     const scores = this.getScores()
     console.log('scores:', scores)
 
-    const idsWithScores = scores.map((score, i) => ({ id: this.brains[i].id, score, generation: this.brains[i].generation }))
+    const idsWithScores = scores.map((score, i) => ({ id: this.brains[i].id, index: i,  score }))
     idsWithScores.sort((a, b) => a.score > b.score ? -1 : 1) // Sorted by best first
-    console.log('sorted brains by score: ', idsWithScores)
+    // Print results
+    console.log()
+    console.log('Sorted brains by score: ')
+    console.log()
+    idsWithScores.forEach(({ index, score }) => {
+      console.log('Score:', score)
+      this.brains[index].printDetails()
+    })
 
     const topScore = idsWithScores[0].score
     // Get the top third that have the top score
@@ -35,9 +42,10 @@ export default class Trainer {
     })
 
     // Log best performing brain
-    const bestBrainId = idsWithScores[0].id
+    const { index, score } = idsWithScores[0]
     console.log('Best Brain:')
-    this.brains.find(b => b.id === bestBrainId).printDetails()
+    console.log('Score:', score)
+    this.brains[index].printDetails()
 
     return scores
   }

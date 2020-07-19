@@ -19,7 +19,7 @@ export default class Neuron {
 
   // Transfers charge to connections and returns connections for further processing
   fire (maxFireCount?: number): Neuron[] {
-    if (maxFireCount && this.fireCount > maxFireCount) throw Error('Max fire count reached.')
+    if (maxFireCount && this.fireCount > maxFireCount) return [] //throw Error('Max fire count reached.')
 
     while (this.chargePercent >= 1) {
       this.connections.forEach(({ neuron: connectedNeuron, strengthPercent }) => {
