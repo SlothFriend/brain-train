@@ -5,12 +5,14 @@ import _times from 'lodash/times'
 import { v4 as uuid } from 'uuid'
 import config from '../config'
 import Neuron from './Neuron'
+import { BrainScoreFn } from './Trainer'
 
 export default class Brain {
   public generation: number = 0
   public id: string
+  public maxProcessingMS: number = 0
 
-  #maxNeuronFireCount: number = 10
+  #maxNeuronFireCount: number = 4
   #neuronsToProcess: Neuron[] = []
 
   constructor(
@@ -19,6 +21,10 @@ export default class Brain {
     public outputNeurons: Neuron[] = [],
   ) {
     this.id = uuid()
+  }
+
+  static build(): Brain {
+    throw Error('build not implemented')
   }
 
   // Builds a brain with the provided input and output count
@@ -35,6 +41,28 @@ export default class Brain {
 
     const allNeurons = [...inputNeurons, ...outputNeurons]
     return new this(allNeurons, inputNeurons, outputNeurons)
+  }
+
+  static scoreFn: BrainScoreFn = (brain: Brain, printResults: boolean = false) => {
+    throw Error('scoreFn not implemented')
+  }
+
+  get connectionCount(): number {
+    return this.allNeurons.reduce((total, neuron) => {
+      return total + neuron.connections.length
+    }, 0)
+  }
+
+  // Brain cost is a measure of negative factors independent of performance (like neuron count, or processing time)
+  get cost(): number {
+    const { COST_FACTORS } = config
+    return COST_FACTORS.neurons * this.neuronCount
+      + COST_FACTORS.connections * this.connectionCount
+      + COST_FACTORS.processingMS * this.maxProcessingMS
+  }
+
+  get neuronCount(): number {
+    return this.allNeurons.length
   }
 
   // Note: This may not add a connection if the neuron selected to form a new connection is already maximally connected
@@ -100,10 +128,15 @@ export default class Brain {
   }
 
   private processNeurons () {
+    const startTime = new Date().getTime()
     while (this.#neuronsToProcess.length) {
       const neuronToProcess = this.#neuronsToProcess.shift()
       if (neuronToProcess.chargePercent >= 1) {
         this.#neuronsToProcess.push(...neuronToProcess.fire(this.#maxNeuronFireCount))
+      }
+      if (new Date().getTime() - startTime > config.MAX_PROCESSING_MS) {
+        console.log('MAX PROCESSING TIME: aborting')
+        return
       }
     }
   }
@@ -172,11 +205,11 @@ export default class Brain {
   }
 
   printDetails () {
-    const neuronCount = this.allNeurons.length
-    const connectionCount = this.allNeurons.reduce((total, neuron) => {
-      return total + neuron.connections.length
-    }, 0)
-    console.log(`Brain ID: ${this.id}\nGeneration: ${this.generation}\nNeuron Count: ${neuronCount}\nConnection Count: ${connectionCount}`)
+    console.log(`Brain ID: ${this.id}`)
+    console.log(`Generation: ${this.generation}`)
+    console.log(`Neuron Count: ${this.neuronCount}`)
+    console.log(`Connection Count: ${this.connectionCount}`)
+    console.log(`Max Processing Time (ms): ${this.maxProcessingMS}`)
     console.log()
   }
 
@@ -188,6 +221,8 @@ export default class Brain {
       throw Error('Invalid Input: Input length must be same size as input neuron list')
     }
 
+    const startTime = new Date().getTime()
+
     input.forEach((val, i) => {
       if (val === true) {
         this.inputNeurons[i].charge(1)
@@ -196,8 +231,13 @@ export default class Brain {
     })
 
     this.processNeurons()
+    const output = this.getOutput()
 
-    return this.getOutput()
+    const endTime = new Date().getTime()
+    const processingMS = endTime - startTime
+    if (this.maxProcessingMS < processingMS) this.maxProcessingMS = processingMS
+
+    return output
   }
 
   reset () {

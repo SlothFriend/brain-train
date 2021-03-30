@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var Brain_1 = require("./Brain");
+Object.defineProperty(exports, "Brain", { enumerable: true, get: function () { return Brain_1.default; } });
+var Connection_1 = require("./Connection");
+Object.defineProperty(exports, "Connection", { enumerable: true, get: function () { return Connection_1.default; } });
+var Neuron_1 = require("./Neuron");
+Object.defineProperty(exports, "Neuron", { enumerable: true, get: function () { return Neuron_1.default; } });
+var Trainer_1 = require("./Trainer");
+Object.defineProperty(exports, "Trainer", { enumerable: true, get: function () { return Trainer_1.default; } });

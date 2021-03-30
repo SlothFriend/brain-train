@@ -1,7 +1,10 @@
 {
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts"],
   "compilerOptions": {
     "esModuleInterop": true,
     "module": "CommonJS",
-    "target": "ES2019"
+    "target": "ES2019",
+    "outDir": "build"
   }
 }

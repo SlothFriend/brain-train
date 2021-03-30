@@ -4,6 +4,9 @@
   "description": "For training brains",
   "main": "index.js",
   "scripts": {
+    "prebuild": "npm run clean",
+    "build": "tsc",
+    "clean": "rm -rf ./build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

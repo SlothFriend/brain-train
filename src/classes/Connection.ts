@@ -17,7 +17,7 @@ export default class Connection {
     })
 
     // Ensure absolute strength percent doesn't go above 1
-    // if (this.strengthPercent < -1) this.strengthPercent = -1
-    // else if (this.strengthPercent > 1) this.strengthPercent = 1
+    if (this.strengthPercent < -1) this.strengthPercent = -1
+    else if (this.strengthPercent > 1) this.strengthPercent = 1
   }
 }
