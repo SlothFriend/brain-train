@@ -28,7 +28,7 @@ export default class Trainer {
     const scores = this.getScores()
     console.log('scores:', scores)
 
-    const idsWithScores = scores.map((score, i) => ({ id: this.#brains[i].id, index: i, score }))
+    const idsWithScores = scores.map((score, i) => ({ index: i, score }))
     idsWithScores.sort((a, b) => {
       if (a.score > b.score) {
         return -1
@@ -36,12 +36,13 @@ export default class Trainer {
         return 1
       } else {
         if (tieBreakWithCost) {
-          console.log(`Score tie-breaker for score "${a.score}"`)
+          // console.log(`Score tie-breaker for score "${a.score}"`)
           return this.#brains[a.index].cost < this.#brains[b.index].cost ? -1 : 1
         }
         return 0
       }
     }) // Sorted by best first
+
     // Print results
     console.log()
     console.log('Sorted brains by score (best last): ')
@@ -58,12 +59,11 @@ export default class Trainer {
     const topScoringBrains = idsWithScores
       .slice(0, Math.round(idsWithScores.length / 3))
       .filter(x => x.score === topScore)
-      .map(({ id }) => this.#brains.find(b => b.id === id))
+      .map(({ index }) => this.#brains[index])
 
     // Get the bottom third
     const toReplace = idsWithScores.slice(idsWithScores.length - Math.round(idsWithScores.length / 3))
-    toReplace.forEach(({ id }) => {
-      const index = this.#brains.findIndex(b => b.id === id)
+    toReplace.forEach(({ index }) => {
       // Replace the brain with a copy of one of the best scoring brains
       this.#brains[index] = _sample(topScoringBrains).copy()
     })
