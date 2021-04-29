@@ -2,7 +2,6 @@ import FourBitAdder from '../brains/FourBitAdder'
 import Trainer from '../classes/Trainer'
 import config from '../config'
 
-// const trainer = new Trainer(FourBitAdder.scoreFn, Array.from(Array(BRAIN_COUNT)).map(x => FourBitAdder.build()))
 const trainer = new Trainer(FourBitAdder, 9)
 
 let bestScore = 0

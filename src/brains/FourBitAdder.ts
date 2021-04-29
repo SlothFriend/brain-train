@@ -3,7 +3,6 @@ import { BrainScoreFn } from '../classes/Trainer'
 import _times from 'lodash/times'
 import { halfByteToDigit, digitToTwoBits } from '../utils/conversions'
 
-
 const BITS = 2
 const COMBOS = 2**BITS
 
@@ -31,10 +30,9 @@ export default class TwoDigitAdder extends Brain {
           const output = brain.processInput(input)
           const outNum = halfByteToDigit([false, ...output])
           const answer = n1 + n2
-          if (outNum === answer) {
-            if (printResults) console.log(`${n1}+${n2}=${answer}`, input, output)
-            score++
-          }
+          score -= Math.abs(outNum - answer)
+          // if (printResults) console.log(`${n1}+${n2}=${answer}`, input, output, outNum === answer ? 'correct' : 'WRONG')
+          // if (outNum === answer) score++
         } catch (e) {
           console.error('Score attempt failed:', e)
         }

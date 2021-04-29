@@ -6,6 +6,7 @@ import { v4 as uuid } from 'uuid'
 import config from '../config'
 import Neuron from './Neuron'
 import { BrainScoreFn } from './Trainer'
+import * as fs from 'fs-extra'
 
 export default class Brain {
   public generation: number = 0
@@ -43,8 +44,12 @@ export default class Brain {
     return new this(allNeurons, inputNeurons, outputNeurons)
   }
 
-  static scoreFn: BrainScoreFn = (brain: Brain, printResults: boolean = false) => {
+  static scoreFn: BrainScoreFn = (brain: Brain, printResults = false) => {
     throw Error('scoreFn not implemented')
+  }
+
+  static test (brain: Brain) {
+    console.log('Score is:', this.scoreFn(brain))
   }
 
   get connectionCount(): number {
@@ -242,5 +247,23 @@ export default class Brain {
 
   reset () {
     this.allNeurons.forEach(n => n.reset())
+  }
+
+  save () {
+    // For each neuron, save its connections
+    let data = this.id + '\n'
+    this.allNeurons.forEach((neuron, i) => {
+      data += JSON.stringify(neuron.connections.map(connection => {
+        const neuronIndex = this.allNeurons.indexOf(connection.neuron)
+        const strength = connection.strengthPercent
+        return [neuronIndex, strength]
+      }))
+      if (this.inputNeurons.includes(neuron)) data += ' in'
+      else if (this.outputNeurons.includes(neuron)) data += ' out'
+      data += '\n'
+    })
+    const path = `./saved-brains/${this.id}.brain`
+    fs.outputFileSync(path, data)
+    console.log(`Brain saved to path: "${path}"`)
   }
 }
