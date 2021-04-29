@@ -119,6 +119,6 @@ export default class Trainer {
     console.log('END RESULTS')
     this.printAllBrainDetails()
 
-    if (options.saveBrain) this.bestBrain.save()
+    if (options.saveBrain) this.bestBrain.saveToFile()
   }
 }

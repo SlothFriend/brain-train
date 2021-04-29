@@ -44,6 +44,41 @@ export default class Brain {
     return new this(allNeurons, inputNeurons, outputNeurons)
   }
 
+  static loadFromFile (path: string) {
+    const data = fs.readFileSync(path, { encoding: 'utf-8' }).trim()
+    const lines = data.split('\n')
+
+    const id = lines[0]
+    const neuronLines = lines.slice(1)
+
+    const allNeurons: Neuron[] = []
+    const inputNeurons: Neuron[] = []
+    const outputNeurons: Neuron[] = []
+
+    // Add a neuron for each line so we have things to reference by index
+    _times(neuronLines.length, () => {
+      allNeurons.push(new Neuron())
+    })
+
+    // Create connections between the neurons and record input/output status
+    neuronLines.forEach((line, i) => {
+      const neuron = allNeurons[i]
+
+      const [connStr, type] = line.split(' ')
+      const connData: any = JSON.parse(connStr)
+      connData.forEach(([connectToIndex, strength]) => {
+        neuron.connectTo(allNeurons[connectToIndex], strength)
+      })
+
+      if (type === 'in') inputNeurons.push(neuron)
+      else if (type === 'out') outputNeurons.push(neuron)
+    })
+
+    const brain: Brain = new this(allNeurons, inputNeurons, outputNeurons)
+    brain.id = id
+    return brain
+  }
+
   static scoreFn: BrainScoreFn = (brain: Brain, printResults = false) => {
     throw Error('scoreFn not implemented')
   }
@@ -249,7 +284,7 @@ export default class Brain {
     this.allNeurons.forEach(n => n.reset())
   }
 
-  save () {
+  saveToFile () {
     // For each neuron, save its connections
     let data = this.id + '\n'
     this.allNeurons.forEach((neuron, i) => {
