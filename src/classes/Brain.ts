@@ -202,7 +202,7 @@ export default class Brain {
     }
   }
 
-  copy (): Brain {
+  copy (options = { withId: false }): Brain {
     // Create a new array with all new neurons, no connections
     const newAllNeurons = this.allNeurons.map(() => new Neuron())
 
@@ -227,6 +227,7 @@ export default class Brain {
 
     const newBrain = new (this.constructor as typeof Brain)(newAllNeurons, newInputNeurons, newOutputNeurons)
     newBrain.generation = this.generation
+    if (options.withId) newBrain.id = this.id
     return newBrain
   }
 
