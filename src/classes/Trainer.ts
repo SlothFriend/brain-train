@@ -2,13 +2,18 @@ import _defaults from 'lodash/defaults'
 import _difference from 'lodash/difference'
 import _sample from 'lodash/sample'
 import Brain from './Brain'
+import config from '../config'
 
-interface TrainOptions {
+interface AddModelBrainOpts {
+  overwrite?: boolean
+}
+
+interface TrainOpts {
   saveBrain?: boolean
   tieBreakWithCost?: boolean
 }
 
-interface TrainerOptions {
+interface TrainerOpts {
   maxModelBrains?: number
 }
 
@@ -21,9 +26,9 @@ export default class Trainer {
   #maxModelBrains: number
   #trainingBrains: Brain[] = []
 
-  constructor (brainType: typeof Brain, brainCount: number, options: TrainerOptions = {}) {
-    options = _defaults(options, {
-      maxModelBrains: 50
+  constructor (brainType: typeof Brain, brainCount: number, options: TrainerOpts = {}) {
+    options = _defaults<TrainerOpts, Required<TrainerOpts>>(options, {
+      maxModelBrains: config.MAX_MODEL_BRAINS,
     })
 
     this.#brainScorer = brainType.scoreFn
@@ -31,8 +36,8 @@ export default class Trainer {
     this.#trainingBrains = Array.from(Array(brainCount)).map(x => brainType.build())
   }
 
-  private addModelBrains(brains: Brain[], options) {
-    options = _defaults(options, {
+  private addModelBrains(brains: Brain[], options: AddModelBrainOpts = {}) {
+    options = _defaults<AddModelBrainOpts, Required<AddModelBrainOpts>>(options, {
       overwrite: false,
     })
 
@@ -119,20 +124,14 @@ export default class Trainer {
     this.#trainingBrains.forEach(brain => brain.mutate(times))
   }
 
-  printAllBrainDetails () {
-    console.log()
-    this.#trainingBrains.forEach(b => b.printDetails())
-    console.log()
-  }
-
   resetBrains () {
     this.#trainingBrains.forEach(brain => brain.reset())
   }
 
-  train(generationJump: number, options: Partial<TrainOptions> = {}) {
-    options = _defaults(options, {
+  train(generationJump: number, options: Partial<TrainOpts> = {}) {
+    options = _defaults<TrainOpts, Required<TrainOpts>>(options, {
       saveBrain: true,
-      tieBreakWithCost: false,
+      tieBreakWithCost: true,
     })
 
     let cycle = 0
@@ -145,8 +144,11 @@ export default class Trainer {
       this.topScore = Math.max(this.topScore, ...scores)
     }
 
-    console.log('END RESULTS')
-    this.printAllBrainDetails()
+    console.log()
+    console.log('END RESULTS - BEST BRAINS:')
+    console.log()
+    this.modelBrains.forEach(b => { b.printDetails() })
+
 
     if (options.saveBrain) this.modelBrains[0].saveToFile()
   }

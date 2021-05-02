@@ -1,7 +1,8 @@
+import _times from 'lodash/times'
 import { Brain } from '../classes'
 import { BrainScoreFn } from '../classes/Trainer'
-import _times from 'lodash/times'
-import { halfByteToDigit, digitToTwoBits } from '../utils/conversions'
+import { digitToTwoBits, halfByteToDigit } from '../utils/conversions'
+import TwoBitAdder from './TwoBitAdder'
 
 const BITS = 2
 const COMBOS = 2**BITS
@@ -12,8 +13,10 @@ Two bits can do 0-3 aka 0-3+0-3, or range 0-6
 6 needs 3 bits as output...
 */
 export default class FourBitAdder extends Brain {
+  static subBrainTypes = [TwoBitAdder]
+
   static build(): FourBitAdder {
-    return Brain.buildFromInAndOut(4, 3)
+    return this.buildFromInAndOut(4, 3)
   }
 
   static scoreFn: BrainScoreFn = (brain: FourBitAdder, printResults: boolean = false): number => {

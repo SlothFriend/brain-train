@@ -6,7 +6,7 @@ export default class Neuron {
   public connections: Connection[] = []
   public fireCount: number = 0
 
-  charge (chargePercent: number) {
+  charge (chargePercent: number = 1) {
     this.chargePercent += chargePercent
   }
 

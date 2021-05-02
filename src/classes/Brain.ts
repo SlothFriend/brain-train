@@ -1,3 +1,4 @@
+import * as fs from 'fs-extra'
 import _difference from 'lodash/difference'
 import _remove from 'lodash/remove'
 import _sample from 'lodash/sample'
@@ -6,15 +7,17 @@ import { v4 as uuid } from 'uuid'
 import config from '../config'
 import Neuron from './Neuron'
 import { BrainScoreFn } from './Trainer'
-import * as fs from 'fs-extra'
 
 export default class Brain {
+  static subBrainTypes: (typeof Brain)[] = []
+
   public generation: number = 0
   public id: string
   public maxProcessingMS: number = 0
 
   #maxNeuronFireCount: number = 4
   #neuronsToProcess: Neuron[] = []
+  #subBrains: Brain[] = []
 
   constructor(
     public allNeurons: Neuron[] = [],
@@ -25,7 +28,7 @@ export default class Brain {
   }
 
   static build(): Brain {
-    throw Error('build not implemented')
+    throw Error('"build" not implemented for base Brain')
   }
 
   // Builds a brain with the provided input and output count
@@ -44,7 +47,9 @@ export default class Brain {
     return new this(allNeurons, inputNeurons, outputNeurons)
   }
 
-  static loadFromFile (path: string) {
+  static loadFromFile (path?: string) {
+    if (path == null) throw Error('Path is needed for base Brain "loadFromFile"')
+
     const data = fs.readFileSync(path, { encoding: 'utf-8' }).trim()
     const lines = data.split('\n')
 
@@ -87,9 +92,33 @@ export default class Brain {
     console.log('Score is:', this.scoreFn(brain))
   }
 
+  get allNeuronsIncludingSubBrains(): Neuron[] {
+    const allCurrentNeurons = [...this.allNeurons]
+    this.#subBrains.forEach(subBrain => allCurrentNeurons.push(...subBrain.allNeurons))
+    return allCurrentNeurons
+  }
+
+  get connectFromCandidateNeurons(): Neuron[] {
+    // Non-output neurons and sub-brain outputs can form new connections
+    const subBrainOutputNeurons: Neuron[] = this.#subBrains.reduce((outputNeurons, subBrain) => {
+      outputNeurons.push(...subBrain.outputNeurons)
+      return outputNeurons
+    }, [])
+    return [...this.nonOutputNeurons, ...subBrainOutputNeurons]
+  }
+
+  get connectToCondidateNeurons(): Neuron[] {
+    // Non-input neurons and sub-brain inputs can receive new connections
+    const subBrainInputNeurons: Neuron[] = this.#subBrains.reduce((inputNeurons, subBrain) => {
+      inputNeurons.push(...subBrain.inputNeurons)
+      return inputNeurons
+    }, [])
+    return [...this.nonInputNeurons, ...subBrainInputNeurons]
+  }
+
   get connectionCount(): number {
-    return this.allNeurons.reduce((total, neuron) => {
-      return total + neuron.connections.length
+    return this.allNeuronsIncludingSubBrains.reduce((count, neuron) => {
+      return count + neuron.connections.length
     }, 0)
   }
 
@@ -102,42 +131,93 @@ export default class Brain {
   }
 
   get neuronCount(): number {
-    return this.allNeurons.length
+    return this.allNeurons.length + this.#subBrains.reduce((count, subBrain) => count + subBrain.allNeurons.length, 0)
   }
 
-  // Note: This may not add a connection if the neuron selected to form a new connection is already maximally connected
+  get nonInputNeurons(): Neuron[] {
+    return _difference(this.allNeurons, this.inputNeurons)
+  }
+
+  get nonOutputNeurons(): Neuron[] {
+    return _difference(this.allNeurons, this.outputNeurons)
+  }
+
+  get nonInputOutputNeurons(): Neuron[] {
+    return _difference(this.allNeurons, this.inputNeurons, this.outputNeurons)
+  }
+
+  get subBrainTypes(): (typeof Brain)[] {
+    return (this.constructor as typeof Brain).subBrainTypes
+  }
+
+  private addRandomSubBrain () {
+    const subBrainType = _sample(this.subBrainTypes)
+    const subBrain = subBrainType.loadFromFile()
+
+    // Connect subBrain inputs
+    const connectFromNeurons = this.connectFromCandidateNeurons
+    subBrain.inputNeurons.forEach(inputNeuron => {
+      const nonOutputNeuron = _sample(connectFromNeurons)
+      nonOutputNeuron.connectTo(inputNeuron)
+    })
+
+    // Connect subBrains outputs
+    const connectToNeurons = this.connectToCondidateNeurons
+    subBrain.outputNeurons.forEach(outputNeuron => {
+      const nonInputNueron = _sample(connectToNeurons)
+      outputNeuron.connectTo(nonInputNueron)
+    })
+
+    this.#subBrains.push(subBrain)
+  }
+
   private addRandomConnection () {
-    // Pick a non-output neuron to connect to a different non-input neuron
-    const nonOutputNeuron = _sample(_difference(this.allNeurons, this.outputNeurons))
-    const otherNonInputNonConnectedNeuron = _sample(_difference(
-      this.allNeurons,
-      this.inputNeurons,
-      [nonOutputNeuron], // Don't try to connect to yourself
-      nonOutputNeuron.connections.map(c => c.neuron), // Don't try to connect to something you're already connected to
-    ))
-    if (nonOutputNeuron && otherNonInputNonConnectedNeuron) {
-      nonOutputNeuron.connectTo(otherNonInputNonConnectedNeuron)
-    }
+    // Select a neuron to connect FROM
+    const candidateFromNeurons = this.connectFromCandidateNeurons
+    if (candidateFromNeurons.length === 0) return
+    const neuronToConnectFrom = _sample(candidateFromNeurons)
+
+    // Select a neuron to connect TO
+    const candidateToNeurons = _difference(
+      this.connectToCondidateNeurons,
+      [neuronToConnectFrom], // Don't connect to yourself
+      neuronToConnectFrom.connections.map(c => c.neuron), // Don't connect to something you're already connected to
+    )
+    if (candidateToNeurons.length === 0) return
+    const neuronToConnectTo = _sample(candidateToNeurons)
+
+    neuronToConnectFrom.connectTo(neuronToConnectTo)
   }
 
   private addRandomNeuron () {
-    // Make the new neuron's input a non-output neuron and its output a non-input neuron
-    const n = new Neuron()
-    const nonOutputNeuron = _sample(_difference(this.allNeurons, this.outputNeurons))
-    const nonInputNeuron = _sample(_difference(this.allNeurons, this.inputNeurons))
-    nonOutputNeuron.connectTo(n)
-    n.connectTo(nonInputNeuron)
-    this.allNeurons.push(n)
+    const newNeuron = new Neuron()
+    const connectFromNeurons = this.connectFromCandidateNeurons
+    const connectFromNeuron = _sample(connectFromNeurons)
+    const connectToNeuron = _sample(this.connectToCondidateNeurons)
+    connectFromNeuron.connectTo(newNeuron)
+    newNeuron.connectTo(connectToNeuron)
+    this.allNeurons.push(newNeuron)
   }
 
-  /**
-   * Returns a boolean array of whether each output neuron fired
-   */
+  /** Returns a boolean array of whether each output neuron fired */
   private getOutput (): boolean[] {
     return this.outputNeurons.map(n => n.fireCount > 0)
   }
 
-  private mutateConnections (times: number = 1) {
+  private mutateAddRemoveSubBrains (times = 1) {
+    _times(times, () => {
+      // If we should mutate a sub-brain
+      if (Math.random() < config.BRAIN_ADD_SUB_CHANCE) {
+        if (Math.random() < config.BRAIN_ADD_SUB_CHANCE_TO_ADD) {
+          this.addRandomSubBrain()
+        } else {
+          this.removeRandomSubBrain()
+        }
+      }
+    })
+  }
+
+  private mutateAddRemoveConnections (times = 1) {
     _times(times, () => {
       // If we should mutate a connection
       if (Math.random() < config.CONNECTION_ADD_SUB_CHANCE) {
@@ -150,7 +230,7 @@ export default class Brain {
     })
   }
 
-  private mutateNeuronCount (times: number = 1) {
+  private mutateAddRemoveNeurons (times = 1) {
     _times(times, () => {
       // If we should add/sum a neuron
       if (Math.random() < config.NEURON_ADD_SUB_CHANCE) {
@@ -163,14 +243,15 @@ export default class Brain {
     })
   }
 
-  private mutateNeurons (times: number = 1) {
+  private mutateConnectionStrengths (times = 1) {
+    // Don't mutate sub-brain connections
     this.allNeurons.forEach(neuron => { neuron.mutate(times) })
   }
 
   private processNeurons () {
     const startTime = new Date().getTime()
     while (this.#neuronsToProcess.length) {
-      const neuronToProcess = this.#neuronsToProcess.shift()
+      const neuronToProcess = this.#neuronsToProcess.pop()
       if (neuronToProcess.chargePercent >= 1) {
         this.#neuronsToProcess.push(...neuronToProcess.fire(this.#maxNeuronFireCount))
       }
@@ -183,63 +264,83 @@ export default class Brain {
 
   private removeRandomConnection () {
     // Pick a non-output neuron (they don't have connections)
-    const nonOutputNeuron = _sample(_difference(this.allNeurons, this.outputNeurons))
-    const connectionToRemove = _sample(nonOutputNeuron.connections)
-    _remove(nonOutputNeuron.connections, c => c === connectionToRemove)
+    const neuron = _sample(this.connectFromCandidateNeurons)
+    const connectionToRemove = _sample(neuron.connections)
+    _remove(neuron.connections, c => c === connectionToRemove)
   }
 
   private removeRandomNeuron () {
     // Pick a non-input, non-output neuron to remove
-    const neuronToRemove = _sample(_difference(this.allNeurons, this.inputNeurons, this.outputNeurons))
-    if (neuronToRemove) {
-      // Remove all connections to this neuron
-      this.allNeurons.forEach(n => {
-        _remove(n.connections, c => c.neuron === neuronToRemove)
-      })
+    const nonInputOutputNeurons = this.nonInputOutputNeurons
+    if (nonInputOutputNeurons.length === 0) return
 
-      // Remove from allNeurons
-      _remove(this.allNeurons, n => n === neuronToRemove)
-    }
+    const neuronToRemove = _sample(nonInputOutputNeurons)
+    // Remove all connections TO this neuron
+    this.connectFromCandidateNeurons.forEach(n => {
+      _remove(n.connections, c => c.neuron === neuronToRemove)
+    })
+    // Remove from allNeurons
+    _remove(this.allNeurons, n => n === neuronToRemove)
+  }
+
+  private removeRandomSubBrain () {
+    if (this.#subBrains.length === 0) return
+
+    const subBrainToRemove = _sample(this.#subBrains)
+    // Remove all connections TO the brain
+    subBrainToRemove.inputNeurons.forEach(inputNeuron => {
+      this.connectFromCandidateNeurons.forEach(n => {
+        _remove(n.connections, c => c.neuron === inputNeuron)
+      })
+    })
+    // Remove from subBrains
+    _remove(this.#subBrains, b => b === subBrainToRemove)
   }
 
   copy (options = { withId: false }): Brain {
     // Create a new array with all new neurons, no connections
-    const newAllNeurons = this.allNeurons.map(() => new Neuron())
+    const allCurrentNeurons = this.allNeuronsIncludingSubBrains
+    const newNeurons = allCurrentNeurons.map(() => new Neuron())
 
-    newAllNeurons.forEach((newNeuron, i) => {
+    newNeurons.forEach((newNeuron, i) => {
       // Fill out the new neuron's connections based on the existing neuron's (by index order)
-      const originalNeuron = this.allNeurons[i]
+      const originalNeuron = allCurrentNeurons[i]
       originalNeuron.connections.forEach(originalConnection => {
-        const index = this.allNeurons.indexOf(originalConnection.neuron)
-        newNeuron.connectTo(newAllNeurons[index], originalConnection.strengthPercent)
+        const index = allCurrentNeurons.indexOf(originalConnection.neuron)
+        newNeuron.connectTo(newNeurons[index], originalConnection.strengthPercent)
       })
     })
 
     // Add to input and output lists by correlated lookup
     const newInputNeurons = this.inputNeurons.map(originalInputNeuron => {
-      const index = this.allNeurons.indexOf(originalInputNeuron)
-      return newAllNeurons[index]
+      const index = allCurrentNeurons.indexOf(originalInputNeuron)
+      return newNeurons[index]
     })
     const newOutputNeurons = this.outputNeurons.map(originalOutputNeuron => {
-      const index = this.allNeurons.indexOf(originalOutputNeuron)
-      return newAllNeurons[index]
+      const index = allCurrentNeurons.indexOf(originalOutputNeuron)
+      return newNeurons[index]
     })
 
-    const newBrain = new (this.constructor as typeof Brain)(newAllNeurons, newInputNeurons, newOutputNeurons)
+    const newBrain = new (this.constructor as typeof Brain)(newNeurons, newInputNeurons, newOutputNeurons)
     newBrain.generation = this.generation
     if (options.withId) newBrain.id = this.id
     return newBrain
   }
 
   mutate (times: number = 1) {
+    // Add or subtract a sub-brain
+    if (this.subBrainTypes.length > 0) {
+      this.mutateAddRemoveSubBrains(times)
+    }
+
     // Add or subtract a neuron
-    this.mutateNeuronCount(times)
+    this.mutateAddRemoveNeurons(times)
 
     // Add or subtract a connection between neurons
-    this.mutateConnections(times)
+    this.mutateAddRemoveConnections(times)
 
     // Mutate neurons
-    this.mutateNeurons(times)
+    this.mutateConnectionStrengths(times)
 
     // Update generation
     this.generation += times
@@ -248,25 +349,32 @@ export default class Brain {
   printDetails () {
     console.log(`Brain ID: ${this.id}`)
     console.log(`Generation: ${this.generation}`)
+    console.log(`Sub-Brain Count: ${this.#subBrains.length}`)
     console.log(`Neuron Count: ${this.neuronCount}`)
     console.log(`Connection Count: ${this.connectionCount}`)
     console.log(`Max Processing Time (ms): ${this.maxProcessingMS}`)
+    this.printSubBrainDetails()
     console.log()
   }
 
-  /**
-   * Takes input for each input neuron and returns output for each output neuron
-   */
-  processInput (input: boolean[]): boolean[] {
-    if (input.length !== this.inputNeurons.length) {
-      throw Error('Invalid Input: Input length must be same size as input neuron list')
-    }
+  printSubBrainDetails() {
+    if (this.subBrainTypes.length === 0) return
+    console.log('Sub-Brains:')
+    this.subBrainTypes.forEach(brainType => {
+      const count = this.#subBrains.filter(brain => brain instanceof brainType).length
+      console.log(`  - ${brainType.name}: ${count}`)
+    })
+  }
+
+  /** Takes input for each input neuron and returns output for each output neuron */
+  processInput (inputVals: boolean[]): boolean[] {
+    if (inputVals.length !== this.inputNeurons.length) throw Error('Invalid Input: Input length must be same size as input neuron list')
 
     const startTime = new Date().getTime()
 
-    input.forEach((val, i) => {
+    inputVals.forEach((val, i) => {
       if (val === true) {
-        this.inputNeurons[i].charge(1)
+        this.inputNeurons[i].charge()
         this.#neuronsToProcess.push(this.inputNeurons[i])
       }
     })
@@ -283,19 +391,22 @@ export default class Brain {
 
   reset () {
     this.allNeurons.forEach(n => n.reset())
+    this.#subBrains.forEach(b => b.reset())
   }
 
   saveToFile () {
-    // For each neuron, save its connections
     let data = this.id + '\n'
-    this.allNeurons.forEach((neuron, i) => {
+    const neurons = this.allNeuronsIncludingSubBrains
+    const inputNeurons = this.inputNeurons
+    const outputNeurons = this.outputNeurons
+    // For each neuron, save its connections
+    neurons.forEach(neuron => {
       data += JSON.stringify(neuron.connections.map(connection => {
-        const neuronIndex = this.allNeurons.indexOf(connection.neuron)
-        const strength = connection.strengthPercent
-        return [neuronIndex, strength]
+        // Connection stored as [connect-to-index, strength]
+        return [neurons.indexOf(connection.neuron), connection.strengthPercent]
       }))
-      if (this.inputNeurons.includes(neuron)) data += ' in'
-      else if (this.outputNeurons.includes(neuron)) data += ' out'
+      if (inputNeurons.includes(neuron)) data += ' in'
+      else if (outputNeurons.includes(neuron)) data += ' out'
       data += '\n'
     })
     const path = `./saved-brains/${this.id}.brain`

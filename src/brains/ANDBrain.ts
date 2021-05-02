@@ -3,7 +3,11 @@ import { BrainScoreFn } from '../classes/Trainer'
 
 export default class ANDBrain extends Brain {
   static build(): ANDBrain {
-    return Brain.buildFromInAndOut(2, 1)
+    return this.buildFromInAndOut(2, 1)
+  }
+
+  static loadFromFile(): ANDBrain {
+    return super.loadFromFile('./saved-brains/AND_2c56cdf7-5001-4dcc-aa4d-865e2829b722.brain')
   }
 
   static scoreFn: BrainScoreFn = (brain: ANDBrain, printResults: boolean = false): number => {
