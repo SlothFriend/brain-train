@@ -1,7 +1,6 @@
 import _times from 'lodash/times'
 import { Brain } from '../classes'
 import { BrainScoreFn } from '../classes/Trainer'
-import { digitToTwoBits, halfByteToDigit } from '../utils/conversions'
 import ANDBrain from './ANDBrain'
 import XORBrain from './XORBrain'
 
@@ -28,25 +27,21 @@ export default class TwoBitAdder extends Brain {
     let score = 0
 
     // 0 + 0 = 00
-    brain.reset()
     let [b1, b2] = brain.processInput([false, false])
     if (b1) score--
     if (b2) score--
 
     // 0 + 1 = 01
-    brain.reset()
     ;([b1, b2] = brain.processInput([false, true]))
     if (b1) score--
     if (!b2) score--
 
     // 1 + 0 = 01
-    brain.reset()
     ;([b1, b2] = brain.processInput([true, false]))
     if (b1) score--
     if (!b2) score--
 
     // 1 + 1 = 10
-    brain.reset()
     ;([b1, b2] = brain.processInput([true, true]))
     if (!b1) score--
     if (b2) score--

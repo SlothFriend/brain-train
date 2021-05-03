@@ -17,22 +17,18 @@ export default class XORBrain extends Brain {
     let score = 0
 
     // 0 & 0 = 0
-    brain.reset()
     const [val1] = brain.processInput([false, false])
     if (val1) score--
 
     // 0 & 1 = 1
-    brain.reset()
     const [val2] = brain.processInput([false, true])
     if (!val2) score--
 
     // 1 & 0 = 1
-    brain.reset()
     const [val3] = brain.processInput([true, false])
     if (!val3) score--
 
     // 1 & 1 = 0
-    brain.reset()
     const [val4] = brain.processInput([true, true])
     if (val4) score--
 

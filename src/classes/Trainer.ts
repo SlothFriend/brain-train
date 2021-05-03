@@ -68,7 +68,7 @@ export default class Trainer {
   // Keep the higher-scoring brains, replace the lower-scoring
   cull (tieBreakWithCost: boolean = false): number[] {
     const scores = this.getScores()
-    console.log('scores:', scores)
+    // console.log('scores:', scores)
 
     const indexWithScores = scores.map((score, i) => ({ index: i, score }))
     indexWithScores.sort((a, b) => {
@@ -89,17 +89,15 @@ export default class Trainer {
     this.topScore = Math.max(this.topScore, topScore)
 
     // Print scoring results
-    console.log()
-    console.log('Sorted brains by score (best last): ')
-    console.log()
+    console.log('\nSorted brains by score (best last):\n')
     for (let i = 0, len = indexWithScores.length; i < len; i++) {
       const { score, index } = indexWithScores[len-i-1]
-      console.log('Score:', score)
+      // console.log('Score:', score)
       this.#trainingBrains[index].printDetails()
     }
-    console.log('Best Score (this cycle):', indexWithScores[0].score)
+    // console.log('Best Score (this cycle):', indexWithScores[0].score)
     console.log('Best Score (all time):', this.topScore)
-    console.log('Number of model brains:', this.modelBrains.length)
+    // console.log('Number of model brains:', this.modelBrains.length)
 
     // Replace poor-performing brains with copies of the model brains
     // Get the bottom third that aren't top scorers

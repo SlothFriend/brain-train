@@ -347,12 +347,12 @@ export default class Brain {
   }
 
   printDetails () {
-    console.log(`Brain ID: ${this.id}`)
-    console.log(`Generation: ${this.generation}`)
-    console.log(`Sub-Brain Count: ${this.#subBrains.length}`)
+    // console.log(`Brain ID: ${this.id}`)
+    // console.log(`Generation: ${this.generation}`)
+    // console.log(`Sub-Brain Count: ${this.#subBrains.length}`)
     console.log(`Neuron Count: ${this.neuronCount}`)
     console.log(`Connection Count: ${this.connectionCount}`)
-    console.log(`Max Processing Time (ms): ${this.maxProcessingMS}`)
+    // console.log(`Max Processing Time (ms): ${this.maxProcessingMS}`)
     this.printSubBrainDetails()
     console.log()
   }
@@ -372,6 +372,7 @@ export default class Brain {
 
     const startTime = new Date().getTime()
 
+    this.reset()
     inputVals.forEach((val, i) => {
       if (val === true) {
         this.inputNeurons[i].charge()

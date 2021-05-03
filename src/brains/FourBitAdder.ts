@@ -27,7 +27,6 @@ export default class FourBitAdder extends Brain {
     _times(COMBOS, (n1) => {
       _times(COMBOS, (n2) => {
         try {
-          brain.reset()
           const input = [...digitToTwoBits(n1), ...digitToTwoBits(n2)]
           const output = brain.processInput(input)
           const outNum = halfByteToDigit([false, ...output])
