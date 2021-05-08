@@ -1,6 +1,7 @@
 import _defaults from 'lodash/defaults'
 import _difference from 'lodash/difference'
 import _sample from 'lodash/sample'
+import _sortBy from 'lodash/sortBy'
 import Brain from './Brain'
 import config from '../config'
 
@@ -87,17 +88,8 @@ export default class Trainer {
     // Record new model brains
     this.addModelBrains(topScoringBrains, { overwrite: (topScore > this.topScore) })
     this.topScore = Math.max(this.topScore, topScore)
-
-    // Print scoring results
-    console.log('\nSorted brains by score (best last):\n')
-    for (let i = 0, len = indexWithScores.length; i < len; i++) {
-      const { score, index } = indexWithScores[len-i-1]
-      // console.log('Score:', score)
-      this.#trainingBrains[index].printDetails()
-    }
-    // console.log('Best Score (this cycle):', indexWithScores[0].score)
+    this.printModelBrainDetails()
     console.log('Best Score (all time):', this.topScore)
-    // console.log('Number of model brains:', this.modelBrains.length)
 
     // Replace poor-performing brains with copies of the model brains
     // Get the bottom third that aren't top scorers
@@ -120,6 +112,12 @@ export default class Trainer {
   mutateBrains (times: number = 1) {
     // Mutate all brains except the best brain
     this.#trainingBrains.forEach(brain => brain.mutate(times))
+  }
+
+  printModelBrainDetails () {
+    _sortBy(this.modelBrains, x => -x.cost)
+      .slice(-3)
+      .forEach(x => x.printDetails())
   }
 
   resetBrains () {
