@@ -4,9 +4,6 @@ import { BrainScoreFn } from '../classes/Trainer'
 import ANDBrain from './ANDBrain'
 import XORBrain from './XORBrain'
 
-const BITS = 1
-const COMBOS = 2**BITS
-
 /*
 Two bit adder, or 1bit+1bit
 One bit can do 0-1 aka 0-1+0-1, or range 0-2

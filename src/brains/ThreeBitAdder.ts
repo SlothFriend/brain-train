@@ -5,15 +5,13 @@ import TwoBitAdder from './TwoBitAdder'
 import ANDBrain from './ANDBrain'
 import XORBrain from './XORBrain'
 
-const BITS = 1
-
 /*
 Three bit adder, or 1bit+2bit
 One bit can do 0-1, two bits can do 0-3 aka 0-1+0-3, or range 0-4
 4 needs 3 bits as output...
 */
 export default class ThreeBitAdder extends Brain {
-  static subBrainTypes = [TwoBitAdder, ANDBrain, XORBrain]
+  static subBrainTypes = [TwoBitAdder]
 
   static build(): ThreeBitAdder {
     return this.buildFromInAndOut(3, 3)

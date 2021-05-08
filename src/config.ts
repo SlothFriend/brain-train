@@ -1,5 +1,5 @@
 export default {
-  BRAIN_ADD_SUB_CHANCE: .001,
+  BRAIN_ADD_SUB_CHANCE: .005,
   BRAIN_ADD_SUB_CHANCE_TO_ADD: .6, // If we need to add/sub a brain, how likely is it an add instead of a subtract?
   CONNECTION_ADD_SUB_CHANCE: .05,
   CONNECTION_ADD_SUB_CHANCE_TO_ADD: .5, // If we need to add/sub a connection, how likely is it an add instead of a subtract?
@@ -10,7 +10,7 @@ export default {
     processingMS: 1,
   },
   DEFAULT_CONNECTION_STRENGTH: 0,
-  MAX_MODEL_BRAINS: 15,
+  MAX_MODEL_BRAINS: 5,
   MAX_PROCESSING_MS: 500,
   NEURON_ADD_SUB_CHANCE: .01,
   NEURON_ADD_SUB_CHANCE_TO_ADD: .5, // If we need to add/sub a neuron, how likely is it an add instead of a subtract?

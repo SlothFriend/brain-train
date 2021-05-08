@@ -157,15 +157,13 @@ export default class Brain {
     // Connect subBrain inputs
     const connectFromNeurons = this.connectFromCandidateNeurons
     subBrain.inputNeurons.forEach(inputNeuron => {
-      const nonOutputNeuron = _sample(connectFromNeurons)
-      nonOutputNeuron.connectTo(inputNeuron)
+      _sample(connectFromNeurons).connectTo(inputNeuron)
     })
 
     // Connect subBrains outputs
     const connectToNeurons = this.connectToCondidateNeurons
     subBrain.outputNeurons.forEach(outputNeuron => {
-      const nonInputNueron = _sample(connectToNeurons)
-      outputNeuron.connectTo(nonInputNueron)
+      outputNeuron.connectTo(_sample(connectToNeurons))
     })
 
     this.#subBrains.push(subBrain)
@@ -349,7 +347,7 @@ export default class Brain {
   printDetails () {
     // console.log(`Brain ID: ${this.id}`)
     // console.log(`Generation: ${this.generation}`)
-    // console.log(`Sub-Brain Count: ${this.#subBrains.length}`)
+    console.log(`Sub-Brain Count: ${this.#subBrains.length}`)
     console.log(`Neuron Count: ${this.neuronCount}`)
     console.log(`Connection Count: ${this.connectionCount}`)
     // console.log(`Max Processing Time (ms): ${this.maxProcessingMS}`)
@@ -388,6 +386,32 @@ export default class Brain {
     if (this.maxProcessingMS < processingMS) this.maxProcessingMS = processingMS
 
     return output
+  }
+
+  // Ensure no unconnected neurons (exluding sub-brains which hopefully don't have unconnected neurons anyway)
+  prune(): Brain {
+    // Collect all neurons with upstream connections
+    const connectedToNeurons = this.nonOutputNeurons.reduce((neurons, neuron) => {
+      neurons.push(...neuron.connections.map(x => x.neuron))
+      return neurons
+    }, [])
+    // All non-input neurons should be connnected to by another neuron
+    this.nonInputNeurons.forEach(neuron => {
+      if (!connectedToNeurons.includes(neuron)) {
+        // Find a non-output neuron to connect to this neuron
+        // console.log('Found neuron without upstream connection')
+        _sample(this.nonOutputNeurons).connectTo(neuron)
+      }
+    })
+    // All non-output neurons should connect to something
+    this.nonOutputNeurons.forEach(neuron => {
+      if (neuron.connections.length === 0) {
+        // Find a non-input neuron to connect to
+        // console.log('Found neuron without downstream connection')
+        neuron.connectTo(_sample(this.nonInputNeurons))
+      }
+    })
+    return this
   }
 
   reset () {
